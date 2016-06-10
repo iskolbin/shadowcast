@@ -4,6 +4,7 @@ local Shadowcast = require('Shadowcast')
 local width = 120
 local height = 40
 local nlights = 5
+local nobstacles = 100
 
 --local screenw = 0
 --local screenh = 0
@@ -15,7 +16,11 @@ local log = {}
 local fov = Shadowcast( width, height, nil, nil, Shadowcast.euclidean )
 
 for i = 1, nlights do
-	fov:insert{ math.random( 1, width ), math.random( 1, height ), math.random( 5, 20 ) }
+	fov:insert{ math.random( 1, width ), math.random( 1, height ), math.random( 2, 5 ) }
+end
+
+for i = 1, nobstacles do
+	fov.resistance[math.random(1,width)][math.random(1,height)] = 100.0
 end
 
 fov:clear()
@@ -26,7 +31,9 @@ local function render()
 	for x = 1, fov.width do
 		for y = 1, fov.height do 
 --			log[#log+1] = x .. ',' .. y .. '=>'.. tostring( fov.lightmap[x] and fov.lightmap[x][y] )
-			Luabox.setcell( ' ', x, y, 0, Luabox.gray( fov.lightmap[x][y]/10))
+			--Luabox.setcell( fov.resistance[x][y] > 0 and '#' or ' ', x, y, 0, Luabox.gray( math.min(1.0, fov.lightmap[x][y]*100)))	
+			Luabox.setcell( fov.resistance[x][y] > 0 and '#' or ' ', x, y, 0, Luabox.gray( fov.lightmap[x][y]))	
+
 		end
 	end
 	for _, s in ipairs( fov.sources ) do

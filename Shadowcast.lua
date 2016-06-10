@@ -18,9 +18,9 @@ local function cast( self, row, start, finish, xx, xy, yx, yy, x0, y0, radius )
 				local leftslope = (dx - 0.5) / (dy + 0.5)
 				local rightslope = (dx + 0.5) / (dy - 0.5)
 				if x >= 1 and y >= 1 and x <= width and y <= height and start >= rightslope then
-					local distance = topology( dx, dy )
-					if distance <= radius then
-						local bright = 1.0 - distance / radius
+					local dr = topology( dx, dy )
+					if dr <= radius then
+						local bright = 1.0 - dr / radius
 						lightmap[x][y] = lightmap[x][y] + bright
 					end
 					if blocked then
@@ -40,6 +40,33 @@ local function cast( self, row, start, finish, xx, xy, yx, yy, x0, y0, radius )
 				end
 			end
 		end
+	end
+end
+
+local function castLine( self, dx, dy, x0, y0, radius )
+	local width = self.width
+	local height = self.height
+	local lightmap = self.lightmap
+	local blocked = false
+	local x, y = x0, y0
+	for distance = 0, radius do
+		if blocked or distance >= width + height then
+			break
+		end
+		
+		if x >= 1 and y >= 1 and x <= width and y <= height then
+			local dr = distance
+			if dr <= radius then
+				local bright = 1.0 - dr / radius
+				lightmap[x][y] = lightmap[x][y] + bright
+			else
+				break
+			end
+		else
+			break
+		end
+		
+		x, y = x + dx, y + dy
 	end
 end
 
@@ -136,14 +163,26 @@ function Shadowcast:update()
 	for _, s in ipairs( self.sources ) do
 		local x0, y0, radius = s[1], s[2], s[3]
 		self.lightmap[x0][y0] = radius
-		cast( self, 1, 1.0, 0.0, 0,-1,-1, 0, x0, y0, radius )
-		cast( self, 1, 1.0, 0.0,-1, 0, 0,-1, x0, y0, radius )
-		cast( self, 1, 1.0, 0.0, 0, 1,-1, 0, x0, y0, radius )
-		cast( self, 1, 1.0, 0.0, 1, 0, 0,-1, x0, y0, radius )
-		cast( self, 1, 1.0, 0.0, 0,-1, 1, 0, x0, y0, radius )
-		cast( self, 1, 1.0, 0.0,-1, 0, 0, 1, x0, y0, radius )
-		cast( self, 1, 1.0, 0.0, 0, 1, 1, 0, x0, y0, radius )
-		cast( self, 1, 1.0, 0.0, 1, 0, 0, 1, x0, y0, radius )
+		cast( self, 0, 1.0, 0.0, 0,-1,-1, 0, x0, y0, radius ) -- 8
+		cast( self, 0, 1.0, 0.0,-1, 0, 0,-1, x0, y0, radius ) -- 7
+		cast( self, 0, 1.0, 0.0, 0, 1,-1, 0, x0, y0, radius ) -- 5
+		cast( self, 0, 1.0, 0.0, 1, 0, 0,-1, x0, y0, radius ) -- 6
+		cast( self, 0, 1.0, 0.0, 0,-1, 1, 0, x0, y0, radius ) -- 1
+		cast( self, 0, 1.0, 0.0,-1, 0, 0, 1, x0, y0, radius ) -- 2
+		cast( self, 0, 1.0, 0.0, 0, 1, 1, 0, x0, y0, radius ) -- 3
+		cast( self, 0, 1.0, 0.0, 1, 0, 0, 1, x0, y0, radius ) -- 4
+--		cast( self, 0, 1.0, 0.0, 0,-1,-1, 0, x0+1, y0+1, radius ) -- 8
+--		cast( self, 0, 1.0, 0.0,-1, 0, 0,-1, x0+1, y0+2, radius ) -- 7
+--		cast( self, 0, 1.0, 0.0, 0, 1,-1, 0, x0-1, y0+1, radius ) -- 5
+--		cast( self, 0, 1.0, 0.0, 1, 0, 0,-1, x0-1, y0+2, radius ) -- 6
+--		cast( self, 0, 1.0, 0.0, 0,-1, 1, 0, x0+1, y0-1, radius ) -- 1
+--		cast( self, 0, 1.0, 0.0,-1, 0, 0, 1, x0+1, y0-2, radius ) -- 2
+	--	cast( self, 0, 1.0, 0.0, 0, 1, 1, 0, x0-1, y0-1, radius ) -- 3
+	--	cast( self, 0, 1.0, 0.0, 1, 0, 0, 1, x0-1, y0-2, radius ) -- 4
+	--	castLine( self, 1, 0, x0+1, y0, radius+1 )		
+	--	castLine( self, 0, 1, x0, y0+1, radius+1 )
+	--	castLine( self,-1, 0, x0-1, y0, radius+1 )
+	--	castLine( self, 0,-1, x0, y0-1, radius+1 )
 	end
 
 	return light
