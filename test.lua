@@ -3,83 +3,65 @@ local Shadowcast = require('Shadowcast')
 
 local width = 120
 local height = 40
-local nlights = 5
-local nobstacles = 100
+local playerx, playery = 5,5
+local light = {}
 
---local screenw = 0
---local screenh = 0
-
-local active = true
-
-local log = {}
-
-local fov = Shadowcast( width, height, nil, nil, Shadowcast.euclidean )
-
-for i = 1, nlights do
-	fov:insert{ math.random( 1, width ), math.random( 1, height ), math.random( 2, 5 ) }
+local field = {}
+for x = 1, width do
+	field[x] = {}
+	for y = 1, height do
+		field[x][y] = math.random() < 0.05 and 1 or 0
+	end
 end
 
-for i = 1, nobstacles do
-	fov.resistance[math.random(1,width)][math.random(1,height)] = 100.0
-end
-
-fov:clear()
-fov:update()
+local red = Shadowcast( field )
+local green = Shadowcast( field )
+local blue = Shadowcast( field )
 
 local function render()
 	Luabox.clear()
-	for x = 1, fov.width do
-		for y = 1, fov.height do 
---			log[#log+1] = x .. ',' .. y .. '=>'.. tostring( fov.lightmap[x] and fov.lightmap[x][y] )
-			--Luabox.setcell( fov.resistance[x][y] > 0 and '#' or ' ', x, y, 0, Luabox.gray( math.min(1.0, fov.lightmap[x][y]*100)))	
-			Luabox.setcell( fov.resistance[x][y] > 0 and '#' or ' ', x, y, 0, Luabox.gray( fov.lightmap[x][y]))	
-
+	for x = 1, width do
+		for y = 1, height do 
+			Luabox.setcell( field[x][y] > 0 and '#' or ' ', x, y, 0, Luabox.rgb( red:get(x,y), green:get(x,y), blue:get(x,y)))
+			--Luabox.gray( light[x] and light[x][y] or 0 ))	
 		end
 	end
-	for _, s in ipairs( fov.sources ) do
-		Luabox.setcell( '@', s[1], s[2], Luabox.rgb(1,0,0), 0 )
-	end
+	Luabox.setcell( '@', playerx, playery, Luabox.rgb(1,0,0))
 	Luabox.present()
 end
 
-local function onkey( ch, key, mod )
-	if key == Luabox.ESC then
-		active = false
-	elseif key == Luabox.LEFT then
-		fov.sources[1][1] = fov.sources[1][1] - 1
-	elseif key == Luabox.RIGHT then
-		fov.sources[1][1] = fov.sources[1][1] + 1
-	elseif key == Luabox.UP then
-		fov.sources[1][2] = fov.sources[1][2] - 1
-	elseif key == Luabox.DOWN then
-		fov.sources[1][2] = fov.sources[1][2] + 1
-	end
+local playerlight = red:insert( playerx, playery, 10 )
+green:insert( 20, 20, 12 )
+blue:insert( 10, 10, 15 )
+
+local function update()
+	red:remove( playerlight ) 
+	playerlight = red:insert( playerx, playery, 10 )
 end
 
-local function onresize( w, h )
-	table.insert( log, ('w=%d h=%d'):format(w,h))
---	screenw = w
---	screenh = h
+local running = true
+
+local function onkey( ch, key, mod )
+	if key == Luabox.ESC then
+		running = false
+	elseif key == Luabox.LEFT then
+		playerx = playerx - 1
+	elseif key == Luabox.RIGHT then
+		playerx = playerx + 1
+	elseif key == Luabox.UP then
+		playery = playery - 1
+	elseif key == Luabox.DOWN then
+		playery = playery + 1
+	end
 end
 
 Luabox.init( Luabox.INPUT_CURRENT, Luabox.OUTPUT_256 )
 Luabox.setcallback( Luabox.EVENT_KEY, onkey )
-Luabox.setcallback( Luabox.EVENT_RESIZE, onresize )
 
-fov:clear()
-fov:update()
-render()
-local ok, err = true, 'Ok'
-while ok and active do
-	ok, err = pcall( function()
-		Luabox.peek()
-		fov:clear()
-		fov:update()
-		render()
-	end )
+while running do
+	Luabox.peek()
+	update()
+	render()
 end
-table.insert( log, err )
 
 Luabox.shutdown()
-
-print( table.concat( log, '\n'))
