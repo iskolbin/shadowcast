@@ -1,3 +1,10 @@
+-- Lua non recursive implementation of shadowcasting techinque for fast 
+-- calculation of field of view. 
+-- Original recursive algorithm by Björn Bergström [bjorn.bergstrom@roguelikedevelopment.org] 
+-- description at http://www.roguebasin.com/index.php?title=FOV\_using\_recursive\_shadowcasting. 
+
+-- coded by Ilya Kolbin ( iskolbin@gmail.com )
+
 local insert, remove, pairs, ipairs, abs, max = table.insert, table.remove, pairs, ipairs, math.abs, math.max
 
 local Shadowcast = {
