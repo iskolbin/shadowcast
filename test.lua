@@ -1,10 +1,12 @@
-local Luabox = require('luabox')
+local luabox = require('luabox')
 local Shadowcast = require('Shadowcast')
 
 local width = 120
 local height = 40
 local playerx, playery = 5,5
 local light = {}
+
+local gsmode = false
 
 local field = {}
 for x = 1, width do
@@ -19,15 +21,15 @@ local green = Shadowcast( field )
 local blue = Shadowcast( field )
 
 local function render()
-	Luabox.clear()
+	luabox.clear()
 	for x = 1, width do
 		for y = 1, height do 
-			Luabox.setcell( field[x][y] > 0 and '#' or ' ', x, y, 0, Luabox.rgbf( red:get(x,y), green:get(x,y), blue:get(x,y)))
-			--Luabox.gray( light[x] and light[x][y] or 0 ))	
+			luabox.setcell( field[x][y] > 0 and '#' or ' ', x, y, 0, gsmode and luabox.grayf( math.min(1,red:get(x,y) + green:get(x,y) + blue:get(x,y))) or luabox.rgbf( red:get(x,y), green:get(x,y), blue:get(x,y)))
+			--luabox.gray( light[x] and light[x][y] or 0 ))	
 		end
 	end
-	Luabox.setcell( '@', playerx, playery, Luabox.rgbf(1,0,0))
-	Luabox.present()
+	luabox.setcell( '@', playerx, playery, luabox.rgbf(1,0,0))
+	luabox.present()
 end
 
 local playerlight = red:insert( playerx, playery, 10 )
@@ -42,26 +44,28 @@ end
 local running = true
 
 local function onkey( ch, key, mod )
-	if key == Luabox.ESC then
+	if key == luabox.ESC then
 		running = false
-	elseif key == Luabox.LEFT then
+	elseif key == luabox.LEFT then
 		playerx = playerx - 1
-	elseif key == Luabox.RIGHT then
+	elseif key == luabox.RIGHT then
 		playerx = playerx + 1
-	elseif key == Luabox.UP then
+	elseif key == luabox.UP then
 		playery = playery - 1
-	elseif key == Luabox.DOWN then
+	elseif key == luabox.DOWN then
 		playery = playery + 1
+	elseif key == luabox.SPACE then
+		gsmode = not gsmode
 	end
 end
 
-Luabox.init( Luabox.INPUT_CURRENT, Luabox.OUTPUT_256 )
-Luabox.setcallback( Luabox.EVENT_KEY, onkey )
+luabox.init( luabox.INPUT_CURRENT, luabox.OUTPUT_256 )
+luabox.setcallback( luabox.EVENT_KEY, onkey )
 
 while running do
-	Luabox.peek()
+	luabox.peek()
 	update()
 	render()
 end
 
-Luabox.shutdown()
+luabox.shutdown()
