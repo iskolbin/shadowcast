@@ -1,7 +1,7 @@
 Shadowcast
 ==========
 
-Lua non recursive implementation of *shadowcasting* techinque for fast calculation of field of view. Original recursive algorithm by Björn Bergström [bjorn.bergstrom@roguelikedevelopment.org] description at http://www.roguebasin.com/index.php?title=FOV\_using\_recursive\_shadowcasting. 
+Lua non recursive implementation of *shadowcasting* techinque for fast calculation of field of view. Original recursive algorithm by Björn Bergström [bjorn.bergstrom@roguelikedevelopment.org] description at http://www.roguebasin.com/index.php?title=FOV_using_recursive_shadowcasting. 
 
 Current implementation allows simple luminance evaluation (not just FOV) and with some effort even light blending, see test example for instance.
 
